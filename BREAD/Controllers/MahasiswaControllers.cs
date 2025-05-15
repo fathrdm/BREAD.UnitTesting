@@ -17,8 +17,15 @@ namespace BREAD.Controllers
         [HttpGet]
         public async Task<IActionResult> ReadAllMahasiswa()
         {
-            var mhs = await _imahasiswaServices.ReadMahasiswa();
-            return Ok(mhs);
+            try
+            {
+                var mhs = await _imahasiswaServices.ReadMahasiswa();
+                return Ok(mhs);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         [HttpGet("{id}/{NIM}")]
