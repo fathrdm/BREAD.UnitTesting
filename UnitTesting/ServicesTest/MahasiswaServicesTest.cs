@@ -272,7 +272,7 @@ namespace UnitTesting.ServicesTest
         {
             // Arrange
             var service = CreateServiceWithMock(out var mockRepo);
-            var emptyMahasiswa = new MahasiswaData(); // Properti kosong
+            var emptyMahasiswa = new MahasiswaData(); 
 
             mockRepo.Setup(r => r.AddMahasiswa(emptyMahasiswa)).ReturnsAsync(0);
 
