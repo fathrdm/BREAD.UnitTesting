@@ -55,9 +55,13 @@ namespace Mahasiswa.Infrastructure.Repositories
         public async Task<int> AddMahasiswa(MahasiswaData mahasiswaData)
         {
             if (mahasiswaData == null) return 0;
-            await _mahasiswaDBContext.MahasiswaData.AddAsync(mahasiswaData);
+            var existing = await _mahasiswaDBContext.MahasiswaData
+                .FirstOrDefaultAsync(m => m.NIM == mahasiswaData.NIM);
+
+            if (existing != null) return 0;
+            _mahasiswaDBContext.MahasiswaData.Add(mahasiswaData);
             await _mahasiswaDBContext.SaveChangesAsync();
-            return 1; 
+            return 1;
         }
     }
 }
