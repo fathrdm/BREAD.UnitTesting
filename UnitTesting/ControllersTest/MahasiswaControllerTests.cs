@@ -111,7 +111,21 @@ namespace UnitTesting.ControllersTest
             var items = Assert.IsAssignableFrom<IEnumerable<MahasiswaData>>(okResult.Value);
             Assert.Empty(items);
         }
-        //WOIIIIIIIIIIIIIIIIIIIIIII SATUUUUUUUUUUUUUU LAGIIIIIIIIIIIIIIII SCENARIOOOOOOOOOOOOOO
+        [Fact]
+        public async Task ReadMahasiswa_ThrowsException_Returns500()
+        {
+            // Arrange
+            var controllers = CreateControllersWithMock(out var mockServices);
+            mockServices.Setup(r => r.ReadMahasiswa())
+                        .ThrowsAsync(new Exception("database error"));
+
+            // Act
+            var result = await controllers.ReadAllMahasiswa();
+
+            // Assert
+            var objectResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, objectResult.StatusCode);
+        }
         #endregion
 
         #region Update Mahasiswa By ID
@@ -133,7 +147,7 @@ namespace UnitTesting.ControllersTest
 
             //assert
             Assert.IsType<NoContentResult>(result);
-            
+
         }
         [Fact]
         public async Task UpdateMahasiswaByID_InvalidId_ReturnsNotFound()
