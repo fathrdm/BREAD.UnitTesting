@@ -240,6 +240,38 @@ namespace UnitTesting.RepositoryTest
             // Assert
             Assert.Equal(0, result);
         }
+
+        [Fact]
+        public async Task AddMahasiswa_DuplicateNIM_Returns0_AndDoesNotAdd()
+        {
+            // Arrange
+            var repo = InMemoryDbHelper.GetRepositoryWithEmptyContext();
+
+            var existingMahasiswa = new MahasiswaData()
+            {
+                Name = "Fathiah Nuraisyah Radam",
+                NIM = "2210817120013",
+                isActive = true
+            };
+
+            await repo.AddMahasiswa(existingMahasiswa);
+
+            var newMahasiswaWithDuplicateNIM = new MahasiswaData()
+            {
+                Name = "Fathiah RDM",
+                NIM = "2210817120013",  
+                isActive = true
+            };
+
+            // Act
+            var result = await repo.AddMahasiswa(newMahasiswaWithDuplicateNIM);
+
+            // Assert
+            Assert.Equal(0, result);  
+            var data = await repo.BrowseMahasiswaByNIM("2210817120013");
+            Assert.NotNull(data);
+            Assert.Equal("Fathiah Nuraisyah Radam", data.Name);
+        }
         #endregion
 
     }
