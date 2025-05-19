@@ -13,7 +13,6 @@ namespace UnitTesting.Helpers
 {
     public class InMemoryDbHelper
     {
-        // Method static supaya bisa dipakai langsung tanpa instance
         public static MahasiswaDBContext GetContext()
         {
             var options = new DbContextOptionsBuilder<MahasiswaDBContext>()

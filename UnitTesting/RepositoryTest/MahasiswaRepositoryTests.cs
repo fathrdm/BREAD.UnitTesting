@@ -68,6 +68,7 @@ namespace UnitTesting.RepositoryTest
             //Assert
             Assert.NotNull(result);
             Assert.Equal("2210817120013", result.NIM);
+
         }
         [Fact]
         public async Task BrowseMahasiswaByID_inValidId_ReturnsNull()

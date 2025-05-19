@@ -28,7 +28,7 @@ namespace BREAD.Controllers
             }
         }
 
-        [HttpGet("{id}/{NIM}")]
+        [HttpGet("{NIM}")]
         public async Task<IActionResult> BrowseByID (string NIM)
         {
             var mhs = await _imahasiswaServices.BrowseMahasiswaByNIM(NIM);

@@ -12,7 +12,15 @@ namespace Mahasiswa.Application.Services
         }
         public async Task<MahasiswaData> BrowseMahasiswaByNIM(string NIM)
         {
-            return await _imahasiswaRepository.BrowseMahasiswaByNIM(NIM);
+            if (string.IsNullOrEmpty(NIM))
+                throw new ArgumentException($"Silahkan Isi NIM");
+
+            var data = await _imahasiswaRepository.BrowseMahasiswaByNIM(NIM);
+
+            if (data == null)
+                throw new FileNotFoundException($"Mahasiswa dengan NIM {NIM} tidak ditemukan");
+
+            return data;
         }
 
         public async Task<int> DeleteMahasiswaByID(int id)
@@ -22,7 +30,10 @@ namespace Mahasiswa.Application.Services
 
         public async Task<List<MahasiswaData>> ReadMahasiswa()
         {
-            return await _imahasiswaRepository.ReadMahasiswa();
+            var data = await _imahasiswaRepository.ReadMahasiswa();
+            if(data == null || !data.Any())
+                throw new FileNotFoundException($"Tidak ada data mahasiswa");
+            return data;
         }
 
         public async Task<int> UpdateMahasiswaByID(int id, MahasiswaData mahasiswaData)
@@ -31,7 +42,13 @@ namespace Mahasiswa.Application.Services
         }
         public async Task<int> AddMahasiswa(MahasiswaData mahasiswaData)
         {
-            return await _imahasiswaRepository.AddMahasiswa(mahasiswaData);
+            var data = await _imahasiswaRepository.AddMahasiswa(mahasiswaData);
+
+            if (mahasiswaData is null ||
+                string.IsNullOrEmpty(mahasiswaData.NIM) ||
+                string.IsNullOrEmpty(mahasiswaData.Name))
+                throw new ArgumentException("Semua data harus terisi NIM dan Nama");
+            return data;
         }
     }
 }

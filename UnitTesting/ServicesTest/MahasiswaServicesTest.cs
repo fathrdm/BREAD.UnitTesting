@@ -14,7 +14,7 @@ namespace UnitTesting.ServicesTest
     public class MahasiswaServicesTest
     {
         #region helper
-        public MahasiswaServices CreateServiceWithMock(out Mock<IMahasiswaRepository> mockRepo)
+        public  IMahasiswaServices CreateServiceWithMock(out Mock<IMahasiswaRepository> mockRepo)
         {
             mockRepo = new Mock<IMahasiswaRepository>();
             return new MahasiswaServices(mockRepo.Object);
@@ -44,30 +44,26 @@ namespace UnitTesting.ServicesTest
             mockRepo.Verify(r => r.BrowseMahasiswaByNIM("2210817120013"), Times.Once);
         }
         [Fact]
-        public async Task BrowseMahasiswaByNIM_InvalidNIM_ReturnsNull()
+        public async Task BrowseMahasiswaByNIM_InvalidNIM_ThrowFileNotFound()
         {
             //arange
             var service = CreateServiceWithMock(out var mockRepo);
             mockRepo.Setup(r => r.BrowseMahasiswaByNIM("2210817120009")).ReturnsAsync((MahasiswaData)null);
 
-            //act
-            var result = await service.BrowseMahasiswaByNIM("2210817120009");
 
-            //assert
-            Assert.Null(result);
+            //act dan assert
+            var th = await Assert.ThrowsAsync<FileNotFoundException>(() => service.BrowseMahasiswaByNIM("2210817120009"));
+            Assert.Equal("Mahasiswa dengan NIM 2210817120009 tidak ditemukan", th.Message);
         }
         [Fact]
-        public async Task BrowseMahasiswaByNIM_EmptyOrWhitespaceNIM_ReturnsNull()
+        public async Task BrowseMahasiswaByNIM_EmptyNIM_ThrowArgumetnException()
         {
             //arange
             var service = CreateServiceWithMock(out var mockRepo);
-            mockRepo.Setup(r => r.BrowseMahasiswaByNIM(" ")).ReturnsAsync((MahasiswaData)null);
 
-            //act
-            var result = await service.BrowseMahasiswaByNIM(" ");
-
-            //assert
-            Assert.Null(result);
+            //act dan assert
+            var th = await Assert.ThrowsAsync<ArgumentException>(() => service.BrowseMahasiswaByNIM(""));
+            Assert.Equal("Silahkan Isi NIM", th.Message);
         }
 
         #endregion
@@ -91,25 +87,24 @@ namespace UnitTesting.ServicesTest
             Assert.NotEmpty(result);
         }
         [Fact]
-        public async Task ReadMahasiswa_EmptyData_ReturnsEmptyList()
+        public async Task ReadMahasiswa_EmptyData_ThrowFileNotFound()
         {
             //arange
             var service = CreateServiceWithMock(out var mockRepo);
             mockRepo.Setup(r => r.ReadMahasiswa()).ReturnsAsync(new List<MahasiswaData>());
 
-            //act
-            var result = await service.ReadMahasiswa();
-
-            //assert
-            Assert.NotNull(result);
-            Assert.Empty(result);
+            //act dan assert
+            var th = await Assert.ThrowsAsync<FileNotFoundException>(() => service.ReadMahasiswa());
+            Assert.Equal("Tidak ada data mahasiswa", th.Message);
         }
         [Fact]
         public async Task ReadMahasiswa_ReturnsCorrectDataStructure()
         {
             //arange
             var service = CreateServiceWithMock(out var mockRepo);
-            mockRepo.Setup(r => r.ReadMahasiswa()).ReturnsAsync(new List<MahasiswaData>());
+            mockRepo.Setup(r => r.ReadMahasiswa()).ReturnsAsync(new List<MahasiswaData>    {
+                new MahasiswaData { Id = 1, Name = "Fathiah Nuraisyah Radam", NIM = "2210817120013", isActive = true }
+            });
 
             //act
             var result = await service.ReadMahasiswa();
@@ -168,20 +163,34 @@ namespace UnitTesting.ServicesTest
         }
 
         [Fact]
-        public async Task UpdateMahasiswaByID_EmptyData_Returns0()
+        public async Task UpdateMahasiswaByID_ValidData_UpdatesSuccessfully()
         {
-            //arange
+            // Arrange
             var service = CreateServiceWithMock(out var mockRepo);
-            var mahasiswa = new MahasiswaData();
-            mockRepo.Setup(r => r.UpdateMahasiswaByID(1, mahasiswa)).ReturnsAsync(0);
+            var updatedData = new MahasiswaData
+            {
+                NIM = "2210817120009",
+                Name = "Fathiah Nuraisyah",
+                isActive = false
+            };
 
-            //act
-            var result = await service.UpdateMahasiswaByID(1, mahasiswa);
+            mockRepo.Setup(r => r.UpdateMahasiswaByID(1, It.IsAny<MahasiswaData>()))
+                    .ReturnsAsync(1);
 
-            //assert
-            Assert.Equal(0, result);
-            mockRepo.VerifyAll();
+            // Act
+            var result = await service.UpdateMahasiswaByID(1, updatedData);
+
+            // Assert
+            Assert.Equal(1, result);
+
+            mockRepo.Verify(r => r.UpdateMahasiswaByID(1,
+                It.Is<MahasiswaData>(m =>
+                    m.NIM == "2210817120009" &&
+                    m.Name == "Fathiah Nuraisyah" &&
+                    m.isActive == false
+                )), Times.Once());
         }
+
         #endregion
 
         #region Delete Mahasiswa By ID
@@ -253,35 +262,32 @@ namespace UnitTesting.ServicesTest
         }
 
         [Fact]
-        public async Task AddMahasiswa_NullData_ThrowsArgumentNullException()
+        public async Task AddMahasiswa_Null_ThrowsArgumentException()
         {
             // Arrange
+
             var service = CreateServiceWithMock(out var mockRepo);
 
-            mockRepo.Setup(r => r.AddMahasiswa(null)).ReturnsAsync(0);
-
-            // Act
-            var result = await service.AddMahasiswa(null);
-
-            // Assert
-            Assert.Equal(0, result);
+            //act dan assert
+            var th = await Assert.ThrowsAsync<ArgumentException>(() => service.AddMahasiswa(null));
+            Assert.Equal("Semua data harus terisi NIM dan Nama", th.Message);
         }
 
         [Fact]
-        public async Task AddMahasiswa_EmptyData_Returns0()
+        public async Task AddMahasiswa_EmptyDataField_ThrowsArgumentException()
         {
             // Arrange
             var service = CreateServiceWithMock(out var mockRepo);
-            var emptyMahasiswa = new MahasiswaData(); 
+            var emptyMahasiswa = new MahasiswaData{ 
+            Name = " ",
+            NIM = "",
+            isActive = false}; 
 
             mockRepo.Setup(r => r.AddMahasiswa(emptyMahasiswa)).ReturnsAsync(0);
 
-            // Act
-            var result = await service.AddMahasiswa(emptyMahasiswa);
-
-            // Assert
-            Assert.Equal(0, result);
-            mockRepo.Verify(r => r.AddMahasiswa(emptyMahasiswa), Times.Once);
+            //act dan assert
+            var th = await Assert.ThrowsAsync<ArgumentException>(() => service.AddMahasiswa(emptyMahasiswa));
+            Assert.Equal("Semua data harus terisi NIM dan Nama", th.Message);
         }
         #endregion
 
